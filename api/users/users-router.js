@@ -67,18 +67,45 @@ router.put('/:id', validateUserId, validateUser, (req, res, next) => {
   // and another middleware to check that the request body is valid
 });
 
-router.delete('/:id', validateUserId, (req, res, next) => {
+router.delete('/:id', validateUserId, async (req, res, next) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
+  try {
+   await Users.remove(req.params.id)
+     res.status(200).json(req.user)
+  }catch (err) {
+      res.status(500).json({
+        message: "error deleting user"
+      });
+    }
   // this needs a middleware to verify user id
 });
 
 router.get('/:id/posts', validateUserId, (req, res, next) => {
   // RETURN THE ARRAY OF USER POSTS
+  Users.getUserPosts(req.params.id)
+    .then(posts => {
+      res.status(200).json(posts)
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: "error deleting user"
+      });
+    })
   // this needs a middleware to verify user id
 });
 
-router.post('/:id/posts', validateUserId, (req, res, next) => {
+router.post('/:id/posts', validateUserId, validatePost, (req, res, next) => {
   // RETURN THE NEWLY CREATED USER POST
+  const postInfo = {...req.body, user_id: req.params.id }
+  Posts.insert(postInfo)
+    .then(post => {
+      res.status(210).json(post)
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: "error creating post"
+      });
+    })
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
 });
